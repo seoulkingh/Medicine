@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_alarm_setting"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    tools:context=".ui.alarm.AlarmSettingActivity">
+
+    <!-- 제목 -->
+    <TextView
+        android:id="@+id/txt_set_alarm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="알람 시간 설정"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="24dp" />
+
+    <!-- 시간 선택 -->
+    <TimePicker
+        android:id="@+id/time_picker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:timePickerMode="spinner" />
+
+    <!-- 저장 버튼 -->
+    <Button
+        android:id="@+id/btn_save_alarm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="알람 저장"
+        android:layout_marginTop="32dp" />
+
+</LinearLayout>

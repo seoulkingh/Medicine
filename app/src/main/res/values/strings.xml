@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/values/strings.xml -->
+<resources>
+    <string name="app_name">바른약 길잡이</string>
+    <string name="app_subtitle">내 손안의 약국</string>
+
+    <!-- Home Screen -->
+    <string name="home_camera_title">📷 사진 찍어 찾기</string>
+    <string name="home_camera_description">약이나 영양제를 촬영하여 정보를 확인해세요</string>
+    <string name="home_my_list">내 목록</string>
+    <string name="home_alarm">알람</string>
+    <string name="home_settings">설정</string>
+
+    <!-- Camera Screen -->
+    <string name="camera_guide_title">약 촬영 가이드</string>
+    <string name="camera_guide_instruction1">하얀 배경에 약을 올려주세요</string>
+    <string name="camera_guide_instruction2">약이 화면 중앙에 오도록 맞춰주세요</string>
+    <string name="camera_capture">촬영</string>
+    <string name="camera_gallery">📷 갤러리에서 선택</string>
+
+    <!-- Result Screen -->
+    <string name="result_title">약 정보 확인</string>
+    <string name="result_add_to_list">내 목록에 추가</string>
+    <string name="result_set_alarm">이 약으로 알람 맞추기</string>
+    <string name="result_manufacturer">제조사</string>
+    <string name="result_main_ingredient">주요성분</string>
+
+    <!-- My List Screen -->
+    <string name="my_list_title">내 목록</string>
+    <string name="my_list_tab_all">전체</string>
+    <string name="my_list_tab_medicine">약</string>
+    <string name="my_list_tab_supplement">영양제</string>
+    <string name="my_list_empty_title">저장된 약이나 영양제가 없습니다</string>
+    <string name="my_list_empty_description">카메라로 약을 촬영하여 추가해보세요</string>
+    <string name="my_list_empty_button">📷 사진 찍어 찾기</string>
+
+    <!-- Detail Screen -->
+    <string name="detail_title">약물 정보</string>
+    <string name="detail_set_alarm">이 약으로 알람 설정</string>
+    <string name="detail_remove_from_list">목록에서 제거</string>
+    <string name="detail_delete_dialog_title">약물 삭제</string>
+    <string name="detail_delete_dialog_message">을(를) 목록에서 제거하시겠습니까?\n관련된 알람도 함께 삭제됩니다.</string>
+    <string name="detail_category">분류</string>
+    <string name="detail_created_date">등록일</string>
+
+    <!-- Alarm Screen -->
+    <string name="alarm_title">알람</string>
+    <string name="alarm_summary_title">설정된 알람</string>
+    <string name="alarm_summary_description">개의 알람이 활성화됨</string>
+    <string name="alarm_empty_title">설정된 알람이 없습니다</string>
+    <string name="alarm_empty_description">약 복용 시간을 알려드릴 알람을 추가해보세요</string>
+    <string name="alarm_empty_button">⏰ 알람 추가하기</string>
+
+    <!-- Alarm Setting Screen -->
+    <string name="alarm_setting_title">알람 설정</string>
+    <string name="alarm_setting_time">복용 시간</string>
+    <string name="alarm_setting_medicine">약물 선택</string>
+    <string name="alarm_setting_days">반복 요일</string>
+    <string name="alarm_setting_options">알람 옵션</string>
+    <string name="alarm_setting_sound">알람 소리</string>
+    <string name="alarm_setting_vibration">진동</string>
+    <string name="alarm_setting_save">저장</string>
+    <string name="alarm_setting_no_medicine">등록된 약물이 없습니다. 먼저 약물을 등록해주세요.</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">설정</string>
+    <string name="settings_user_section">회원 설정</string>
+    <string name="settings_alarm_section">알람 설정</string>
+    <string name="settings_text_size">글자 크기</string>
+    <string name="settings_text_size_preview">미리보기: 노바스크정 5mg</string>
+    <string name="settings_text_size_normal">보통</string>
+    <string name="settings_text_size_large">크게</string>
+    <string name="settings_text_size_extra_large">아주 크게</string>
+    <string name="settings_default_alarm_sound">기본 알람 소리</string>
+    <string name="settings_default_alarm_description">약 복용 시간에 이메일로</string>
+    <string name="settings_alarm_vibration">알람 진동</string>
+    <string name="settings_alarm_vibration_description">알람과 함께 진동으로 알려드립니다</string>
+
+    <!-- Days of the week -->
+    <string name="day_sunday">일</string>
+    <string name="day_monday">월</string>
+    <string name="day_tuesday">화</string>
+    <string name="day_wednesday">수</string>
+    <string name="day_thursday">목</string>
+    <string name="day_friday">금</string>
+    <string name="day_saturday">토</string>
+
+    <!-- Common -->
+    <string name="back">뒤로가기</string>
+    <string name="add">추가</string>
+    <string name="delete">삭제</string>
+    <string name="edit">편집</string>
+    <string name="save">저장</string>
+    <string name="cancel">취소</string>
+    <string name="ok">확인</string>
+    <string name="yes">예</string>
+    <string name="no">아니오</string>
+
+    <!-- Toast Messages -->
+    <string name="toast_medicine_added">내 목록에 추가되었습니다.</string>
+    <string name="toast_medicine_deleted">이(가) 삭제되었습니다.</string>
+    <string name="toast_alarm_saved">알람이 설정되었습니다.</string>
+    <string name="toast_photo_capturing">사진 촬영 중...</string>
+    <string name="toast_gallery_opening">갤러리 열기</string>
+    <string name="toast_cannot_load_medicine">약물 정보를 불러올 수 없습니다.</string>
+    <string name="toast_cannot_open_app">앱을 열 수 없습니다.</string>
+</resources>

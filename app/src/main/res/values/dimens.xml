@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/values/dimens.xml -->
+<resources>
+    <!-- Spacing -->
+    <dimen name="spacing_tiny">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">12dp</dimen>
+    <dimen name="spacing_normal">16dp</dimen>
+    <dimen name="spacing_large">20dp</dimen>
+    <dimen name="spacing_extra_large">24dp</dimen>
+    <dimen name="spacing_huge">32dp</dimen>
+    <dimen name="spacing_massive">40dp</dimen>
+
+    <!-- Text sizes -->
+    <dimen name="text_size_tiny">10sp</dimen>
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_medium">14sp</dimen>
+    <dimen name="text_size_normal">16sp</dimen>
+    <dimen name="text_size_large">18sp</dimen>
+    <dimen name="text_size_extra_large">20sp</dimen>
+    <dimen name="text_size_huge">24sp</dimen>
+    <dimen name="text_size_title">28sp</dimen>
+
+    <!-- Component sizes -->
+    <dimen name="button_height_small">36dp</dimen>
+    <dimen name="button_height_normal">48dp</dimen>
+    <dimen name="button_height_large">56dp</dimen>
+
+    <dimen name="icon_size_tiny">16dp</dimen>
+    <dimen name="icon_size_small">20dp</dimen>
+    <dimen name="icon_size_medium">24dp</dimen>
+    <dimen name="icon_size_normal">32dp</dimen>
+    <dimen name="icon_size_large">40dp</dimen>
+    <dimen name="icon_size_extra_large">48dp</dimen>
+    <dimen name="icon_size_huge">56dp</dimen>
+    <dimen name="icon_size_massive">80dp</dimen>
+
+    <!-- Corner radius -->
+    <dimen name="corner_radius_small">4dp</dimen>
+    <dimen name="corner_radius_medium">8dp</dimen>
+    <dimen name="corner_radius_normal">12dp</dimen>
+    <dimen name="corner_radius_large">16dp</dimen>
+    <dimen name="corner_radius_extra_large">20dp</dimen>
+    <dimen name="corner_radius_circle">50dp</dimen>
+
+    <!-- Elevation -->
+    <dimen name="elevation_none">0dp</dimen>
+    <dimen name="elevation_low">2dp</dimen>
+    <dimen name="elevation_medium">4dp</dimen>
+    <dimen name="elevation_high">8dp</dimen>
+    <dimen name="elevation_extra_high">16dp</dimen>
+
+    <!-- Card dimensions -->
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="card_margin">8dp</dimen>
+    <dimen name="card_elevation">4dp</dimen>
+
+    <!-- Home screen specific -->
+    <dimen name="home_camera_card_height">200dp</dimen>
+    <dimen name="home_bottom_button_size">60dp</dimen>
+
+    <!-- Camera screen specific -->
+    <dimen name="camera_guide_size">300dp</dimen>
+    <dimen name="camera_capture_button_size">80dp</dimen>
+
+    <!-- Medicine item specific -->
+    <dimen name="medicine_image_size_small">48dp</dimen>
+    <dimen name="medicine_image_size_medium">120dp</dimen>
+    <dimen name="medicine_image_size_large">150dp</dimen>
+
+    <!-- List item dimensions -->
+    <dimen name="list_item_height">72dp</dimen>
+    <dimen name="list_item_padding">16dp</dimen>
+    <dimen name="list_item_spacing">12dp</dimen>
+
+    <!-- Toolbar and navigation -->
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="navigation_button_size">48dp</dimen>
+
+    <!-- Form elements -->
+    <dimen name="input_field_height">56dp</dimen>
+    <dimen name="input_field_padding">16dp</dimen>
+    <dimen name="switch_padding">12dp</dimen>
+
+    <!-- Chip dimensions -->
+    <dimen name="chip_height">32dp</dimen>
+    <dimen name="chip_padding_horizontal">12dp</dimen>
+    <dimen name="chip_padding_vertical">8dp</dimen>
+
+    <!-- Dialog dimensions -->
+    <dimen name="dialog_padding">24dp</dimen>
+    <dimen name="dialog_button_height">48dp</dimen>
+
+    <!-- Status bar -->
+    <dimen name="status_bar_height">24dp</dimen>
+</resources>
