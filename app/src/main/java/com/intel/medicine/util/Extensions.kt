@@ -13,75 +13,15 @@ import androidx.compose.ui.composed
 import java.text.SimpleDateFormat
 import java.util.*
 
-// Context Extensions
 fun Context.showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, message, duration).show()
 }
 
-fun Context.startActivitySafely(intent: Intent): Boolean {
-    return try {
-        startActivity(intent)
-        true
-    } catch (e: Exception) {
-        showToast("앱을 열 수 없습니다.")
-        false
-    }
-}
-
-// Date Extensions
 fun Date.toFormattedString(pattern: String = "yyyy.MM.dd HH:mm"): String {
-    return SimpleDateFormat(pattern, Locale.getDefault()).format(this)
+    val formatter = SimpleDateFormat(pattern, Locale.getDefault())
+    return formatter.format(this)
 }
 
-fun Date.toTimeString(): String {
-    return SimpleDateFormat("HH:mm", Locale.getDefault()).format(this)
-}
-
-fun Date.toDateString(): String {
-    return SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).format(this)
-}
-
-// String Extensions
-fun String.toDate(pattern: String = "yyyy.MM.dd HH:mm"): Date? {
-    return try {
-        SimpleDateFormat(pattern, Locale.getDefault()).parse(this)
-    } catch (e: Exception) {
-        null
-    }
-}
-
-fun String.isValidTime(): Boolean {
-    return try {
-        val parts = this.split(":")
-        if (parts.size != 2) return false
-        val hour = parts[0].toInt()
-        val minute = parts[1].toInt()
-        hour in 0..23 && minute in 0..59
-    } catch (e: Exception) {
-        false
-    }
-}
-
-// Compose Extensions
-fun Modifier.clickableWithoutRipple(onClick: () -> Unit): Modifier = composed {
-    clickable(
-        indication = null,
-        interactionSource = remember { MutableInteractionSource() }
-    ) {
-        onClick()
-    }
-}
-
-fun Modifier.clickableWithRipple(onClick: () -> Unit): Modifier = composed {
-    clickable(
-        indication = rememberRipple(),
-        interactionSource = remember { MutableInteractionSource() }
-    ) {
-        onClick()
-    }
-}
-
-// Collections Extensions
 fun <T> List<T>.toggle(item: T): List<T> {
     return if (contains(item)) {
         this - item
@@ -90,9 +30,22 @@ fun <T> List<T>.toggle(item: T): List<T> {
     }
 }
 
-// Validation Extensions
-fun String.isNotEmptyOrBlank(): Boolean = isNotEmpty() && isNotBlank()
+fun String.isValidTime(): Boolean {
+    return try {
+        val pattern = "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+        this.matches(pattern.toRegex())
+    } catch (e: Exception) {
+        false
+    }
+}
 
-fun String.truncate(maxLength: Int): String {
-    return if (length <= maxLength) this else "${take(maxLength)}..."
+fun List<Int>.toDisplayString(): String {
+    if (isEmpty()) return "선택된 요일 없음"
+
+    val dayNames = mapOf(
+        1 to "월", 2 to "화", 3 to "수", 4 to "목",
+        5 to "금", 6 to "토", 7 to "일"
+    )
+
+    return sorted().joinToString(", ") { dayNames[it] ?: "" }
 }

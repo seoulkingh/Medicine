@@ -3,27 +3,17 @@ package com.intel.medicine.data.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
-import java.util.Date
+import java.util.*
 
 @Parcelize
 data class Alarm(
-    val id: Long = 0,
-    val medicineId: Long,
+    val id: String = UUID.randomUUID().toString(),
+    val medicineId: String,
     val medicineName: String,
     val time: String, // "HH:mm" 형식
-    val days: List<Int>, // 0(일) ~ 6(토)
-    val isEnabled: Boolean = true,
+    val days: List<Int>, // 요일 (1=월, 2=화, ..., 7=일)
     val soundEnabled: Boolean = true,
     val vibrationEnabled: Boolean = true,
+    val isEnabled: Boolean = true,
     val createdAt: Date = Date()
 ) : Parcelable
-
-enum class AlarmDay(val value: Int, val displayName: String) {
-    SUNDAY(0, "일"),
-    MONDAY(1, "월"),
-    TUESDAY(2, "화"),
-    WEDNESDAY(3, "수"),
-    THURSDAY(4, "목"),
-    FRIDAY(5, "금"),
-    SATURDAY(6, "토")
-}

@@ -1,13 +1,14 @@
 // ui/home/HomeActivity.kt
 package com.intel.medicine.ui.home
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -20,27 +21,57 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.intel.medicine.ui.camera.CameraActivity
 import com.intel.medicine.ui.list.MyListActivity
 import com.intel.medicine.ui.alarm.AlarmListActivity
 import com.intel.medicine.ui.settings.SettingsActivity
+import com.intel.medicine.util.showToast
 
 class HomeActivity : ComponentActivity() {
+
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            startCameraActivity()
+        } else {
+            showToast("카메라 권한이 필요합니다")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            HomeScreen(
-                onCameraClick = { startCameraActivity() },
-                onMyListClick = { startMyListActivity() },
-                onAlarmClick = { startAlarmActivity() },
-                onSettingsClick = { startSettingsActivity() }
-            )
+            MaterialTheme {
+                HomeScreen(
+                    onCameraClick = {
+                        checkCameraPermissionAndStart()
+                    },
+                    onMyListClick = { startMyListActivity() },
+                    onAlarmClick = { startAlarmActivity() },
+                    onSettingsClick = { startSettingsActivity() }
+                )
+            }
+        }
+    }
+
+    private fun checkCameraPermissionAndStart() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                startCameraActivity()
+            }
+            else -> {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
         }
     }
 
@@ -73,12 +104,15 @@ fun HomeScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    ) {
                         Text(
                             "바른약 길잡이",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF4CAF50)
                         )
                         Text(
                             "내 손안의 약국",
@@ -86,7 +120,10 @@ fun HomeScreen(
                             color = Color.Gray
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.White
+                )
             )
         }
     ) { paddingValues ->
@@ -94,60 +131,71 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
+                .background(Color(0xFFF8F9FA))
+                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-            // 카메라 카드
+            // 메인 카메라 카드
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(260.dp),
+                    .height(280.dp),
                 onClick = onCameraClick,
                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                shape = RoundedCornerShape(16.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                shape = RoundedCornerShape(20.dp)
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
+                    // 카메라 아이콘 배경
                     Surface(
-                        modifier = Modifier.size(80.dp),
+                        modifier = Modifier.size(100.dp),
                         shape = CircleShape,
-                        color = Color(0xFF4CAF50)
+                        color = Color(0xFF4CAF50),
+                        shadowElevation = 4.dp
                     ) {
-                        Icon(
-                            Icons.Default.CameraAlt,
-                            contentDescription = "카메라",
-                            modifier = Modifier.padding(20.dp),
-                            tint = Color.White
-                        )
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.CameraAlt,
+                                contentDescription = "카메라",
+                                modifier = Modifier.size(48.dp),
+                                tint = Color.White
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
                     Text(
-                        "사진 촬영 찾기",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        "사진으로 약물 찾기",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333)
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     Text(
-                        "약이나 영양제를 촬영하여 정보를 확인하세요",
+                        "약이나 영양제를 촬영하면\nAI가 자동으로 정보를 알려드려요",
                         fontSize = 16.sp,
                         color = Color.Gray,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        lineHeight = 22.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
-            // 하단 버튼들
+            // 하단 메뉴 버튼들
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -155,19 +203,34 @@ fun HomeScreen(
                 HomeBottomButton(
                     icon = Icons.Default.List,
                     text = "내 목록",
+                    description = "저장된\n약물보기",
                     onClick = onMyListClick
                 )
+
                 HomeBottomButton(
                     icon = Icons.Default.Alarm,
                     text = "알람",
+                    description = "복용시간\n알림설정",
                     onClick = onAlarmClick
                 )
+
                 HomeBottomButton(
                     icon = Icons.Default.Settings,
                     text = "설정",
+                    description = "앱 환경\n설정하기",
                     onClick = onSettingsClick
                 )
             }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 하단 정보
+            Text(
+                "안전한 복용을 위해 의사나 약사와 상담하세요",
+                fontSize = 12.sp,
+                color = Color.Gray,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -176,59 +239,58 @@ fun HomeScreen(
 fun HomeBottomButton(
     icon: ImageVector,
     text: String,
+    description: String,
     onClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { onClick() }  // 클릭 처리 추가
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(8.dp)
     ) {
         Surface(
-            modifier = Modifier.size(60.dp),
+            modifier = Modifier.size(64.dp),
             shape = CircleShape,
-            color = Color(0xFF4CAF50),
+            color = Color.White,
+            shadowElevation = 4.dp,
             onClick = onClick
         ) {
-            Icon(
-                icon,
-                contentDescription = text,
-                modifier = Modifier.padding(16.dp),
-                tint = Color.White
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = text,
-            fontSize = 12.sp,
-            color = Color.Gray
-        )
-    }
-}
-@Composable
-fun HomeScreenWithCameraPermission(
-    onCameraClick: () -> Unit
-) {
-    val context = LocalContext.current
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { granted ->
-            if (granted) {
-                onCameraClick()
-            } else {
-                Toast.makeText(context, "카메라 권한이 필요합니다", Toast.LENGTH_SHORT).show()
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = text,
+                    modifier = Modifier.size(28.dp),
+                    tint = Color(0xFF4CAF50)
+                )
             }
         }
-    )
 
-    // 버튼 누를 때 권한 요청
-    Button(onClick = {
-        cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
-    }) {
-        Text("카메라 실행")
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = text,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF333333)
+        )
+
+        Text(
+            text = description,
+            fontSize = 10.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            lineHeight = 12.sp
+        )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen()
+    MaterialTheme {
+        HomeScreen()
+    }
 }

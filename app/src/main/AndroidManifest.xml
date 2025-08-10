@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.intel.medicine">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- 필수 권한 -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -10,19 +9,21 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Android 13+ (API 33+) 미디어 권한 -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
 
-    <!-- Android 12 이하 (API 32 이하) 호환 권한 -->
+    <!-- Android 12 이하 호환 권한 -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="28" />
+        android:maxSdkVersion="28"
+        tools:ignore="ScopedStorage" />
 
     <!-- 카메라 하드웨어 기능 선언 -->
     <uses-feature
@@ -34,8 +35,6 @@
     <uses-feature
         android:name="android.hardware.camera.flash"
         android:required="false" />
-
-    <!-- 카메라 기능이 주요 기능이므로 필수로 설정 -->
     <uses-feature
         android:name="android.hardware.camera.any"
         android:required="true" />
@@ -49,80 +48,90 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Medicine"
-        tools:targetApi="31">
+        android:hardwareAccelerated="true"
+        android:largeHeap="true"
+        tools:targetApi="33">
 
         <!-- 앱 시작 액티비티 -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Medicine.NoActionBar"
-            android:launchMode="singleTop">
+            android:theme="@style/Theme.Medicine"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- 앱 화면들 -->
+        <!-- 홈 화면 -->
         <activity
             android:name=".ui.home.HomeActivity"
             android:exported="false"
-            android:theme="@style/Theme.Medicine.NoActionBar"
+            android:theme="@style/Theme.Medicine"
             android:screenOrientation="portrait"
             android:launchMode="singleTop" />
 
+        <!-- 카메라 화면 -->
         <activity
             android:name=".ui.camera.CameraActivity"
             android:exported="false"
-            android:theme="@style/Theme.Medicine.NoActionBar"
+            android:theme="@style/Theme.Medicine"
             android:screenOrientation="portrait"
             android:launchMode="singleTop"
-            android:configChanges="orientation|screenSize|keyboardHidden" />
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:hardwareAccelerated="true" />
 
+        <!-- 결과 화면 -->
         <activity
             android:name=".ui.result.ResultActivity"
             android:exported="false"
-            android:theme="@style/Theme.Medicine.NoActionBar"
+            android:theme="@style/Theme.Medicine"
             android:screenOrientation="portrait"
             android:parentActivityName=".ui.camera.CameraActivity" />
 
+        <!-- 내 목록 화면 -->
         <activity
             android:name=".ui.list.MyListActivity"
             android:exported="false"
-            android:theme="@style/Theme.Medicine.NoActionBar"
+            android:theme="@style/Theme.Medicine"
             android:screenOrientation="portrait"
             android:parentActivityName=".ui.home.HomeActivity" />
 
+        <!-- 상세보기 화면 -->
         <activity
             android:name=".ui.list.DetailActivity"
             android:exported="false"
-            android:theme="@style/Theme.Medicine.NoActionBar"
+            android:theme="@style/Theme.Medicine"
             android:screenOrientation="portrait"
             android:parentActivityName=".ui.list.MyListActivity" />
 
+        <!-- 알람 목록 화면 -->
         <activity
             android:name=".ui.alarm.AlarmListActivity"
             android:exported="false"
-            android:theme="@style/Theme.Medicine.NoActionBar"
+            android:theme="@style/Theme.Medicine"
             android:screenOrientation="portrait"
             android:parentActivityName=".ui.home.HomeActivity" />
 
+        <!-- 알람 설정 화면 -->
         <activity
             android:name=".ui.alarm.AlarmSettingActivity"
             android:exported="false"
-            android:theme="@style/Theme.Medicine.NoActionBar"
+            android:theme="@style/Theme.Medicine"
             android:screenOrientation="portrait"
             android:parentActivityName=".ui.alarm.AlarmListActivity" />
 
+        <!-- 설정 화면 -->
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
-            android:theme="@style/Theme.Medicine.NoActionBar"
+            android:theme="@style/Theme.Medicine"
             android:screenOrientation="portrait"
             android:parentActivityName=".ui.home.HomeActivity" />
 
-        <!-- 이미지 공유를 위한 FileProvider (필요 시 활성화) -->
-        <!--
+        <!-- 이미지 파일 제공자 -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -132,31 +141,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-        -->
-
-        <!-- 알람 기능을 위한 리시버 (구현 후 활성화) -->
-        <!--
-        <receiver
-            android:name=".alarm.AlarmReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-                <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <data android:scheme="package" />
-            </intent-filter>
-        </receiver>
-        -->
-
-        <!-- 알람 서비스 (구현 후 활성화) -->
-        <!--
-        <service
-            android:name=".alarm.AlarmService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="none" />
-        -->
 
     </application>
 

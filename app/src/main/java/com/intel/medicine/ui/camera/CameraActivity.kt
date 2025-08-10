@@ -1,7 +1,8 @@
-// com/intel/medicine/ui/camera/CameraActivity.kt
+// ui/camera/CameraActivity.kt
 package com.intel.medicine.ui.camera
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -9,37 +10,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Flip
-import androidx.compose.material.icons.filled.GridOn
-import androidx.compose.material.icons.filled.GridOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,26 +27,56 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import coil.compose.rememberAsyncImagePainter
+import com.intel.medicine.data.model.DetectionResult
+import com.intel.medicine.ml.YoloModelHelper
+import com.intel.medicine.ui.result.ResultActivity
+import com.intel.medicine.util.BitmapUtils
+import com.intel.medicine.util.showToast
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executors
 
 class CameraActivity : ComponentActivity() {
+
+    private var cameraAnalyzer: CameraAnalyzer? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            CameraScreen()
+            MaterialTheme {
+                CameraScreen(
+                    onBackClick = { finish() },
+                    onPhotoTaken = { detectionResult ->
+                        // 결과 액티비티로 이동
+                        val intent = Intent(this@CameraActivity, ResultActivity::class.java).apply {
+                            putExtra("detection_result", detectionResult)
+                        }
+                        startActivity(intent)
+                        finish()
+                    }
+                )
+            }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraAnalyzer?.close()
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CameraScreen() {
+fun CameraScreen(
+    onBackClick: () -> Unit = {},
+    onPhotoTaken: (DetectionResult) -> Unit = {}
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
@@ -85,16 +95,16 @@ fun CameraScreen() {
     var isBackCamera by remember { mutableStateOf(true) }
     var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     var showGuideLines by remember { mutableStateOf(true) }
-    var capturedImageUri by remember { mutableStateOf<String?>(null) }
     var isCapturing by remember { mutableStateOf(false) }
-    var previewView by remember { mutableStateOf<PreviewView?>(null) }
+    var detectedMedicine by remember { mutableStateOf<String?>(null) }
+    var detectionConfidence by remember { mutableStateOf(0f) }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         hasCameraPermission = isGranted
-        if (isGranted) {
-            Log.d("CameraActivity", "카메라 권한이 허용되었습니다.")
+        if (!isGranted) {
+            (context as ComponentActivity).showToast("카메라 권한이 필요합니다")
         }
     }
 
@@ -104,55 +114,17 @@ fun CameraScreen() {
         }
     }
 
-    // isBackCamera가 변경될 때마다 카메라 재초기화
-    LaunchedEffect(isBackCamera) {
-        if (cameraInitialized && cameraProvider != null) {
-            val provider = cameraProvider!!
-
-            try {
-                provider.unbindAll()
-
-                val preview = Preview.Builder()
-                    .build()
-
-                val imageCaptureBuilder = ImageCapture.Builder()
-                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                imageCapture = imageCaptureBuilder.build()
-
-                val cameraSelector = if (isBackCamera && provider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)) {
-                    CameraSelector.DEFAULT_BACK_CAMERA
-                } else {
-                    CameraSelector.DEFAULT_FRONT_CAMERA
-                }
-
-                provider.bindToLifecycle(
-                    lifecycleOwner,
-                    cameraSelector,
-                    preview,
-                    imageCapture
-                )
-
-                Log.d("CameraActivity", "카메라 재초기화 완료 - ${if (isBackCamera) "후면" else "전면"}")
-
-            } catch (e: Exception) {
-                Log.e("CameraActivity", "카메라 재초기화 실패", e)
-            }
-        }
-    }
-
-    // 사진 촬영 함수
     fun takePhoto() {
         val captureInstance = imageCapture
         if (captureInstance == null || isCapturing) {
-            Log.w("CameraActivity", "ImageCapture가 초기화되지 않았거나 촬영 중입니다")
             return
         }
 
         isCapturing = true
-        Log.d("CameraActivity", "사진 촬영 시작")
 
         val name = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.KOREA)
             .format(System.currentTimeMillis())
+
         val contentValues = android.content.ContentValues().apply {
             put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
@@ -169,205 +141,171 @@ fun CameraScreen() {
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onError(exception: ImageCaptureException) {
-                    Log.e("CameraActivity", "사진 촬영 실패: ${exception.message}", exception)
+                    Log.e("CameraActivity", "사진 촬영 실패: ${exception.message}")
                     isCapturing = false
+                    (context as ComponentActivity).showToast("사진 촬영에 실패했습니다")
                 }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    Log.d("CameraActivity", "사진 촬영 완료 - URI: ${output.savedUri}")
-                    Log.d("CameraActivity", "갤러리 저장 대기 중...")
-                    capturedImageUri = output.savedUri.toString()
+                    Log.d("CameraActivity", "사진 촬영 완료")
                     isCapturing = false
+
+                    // AI 모델로 약물 인식 수행 (샘플 데이터)
+                    val yoloHelper = YoloModelHelper(context)
+                    val sampleResult = DetectionResult(
+                        medicineName = "타이레놀정 500mg",
+                        confidence = 0.95f,
+                        category = "약",
+                        manufacturer = "한국얀센",
+                        mainIngredient = "아세트아미노펜",
+                        description = "해열진통제"
+                    )
+
+                    onPhotoTaken(sampleResult)
                 }
             }
         )
     }
 
-    // 저장 완료 후 초기화
-    fun resetCapture() {
-        capturedImageUri = null
-        Log.d("CameraActivity", "카메라 초기화 완료")
-    }
-
-    // 안내선 토글
-    fun toggleGuideLines() {
-        showGuideLines = !showGuideLines
-        Log.d("CameraActivity", "안내선 토글: $showGuideLines")
-    }
-
     if (hasCameraPermission) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            AndroidView(
-                modifier = Modifier.fillMaxSize(),
-                factory = { ctx ->
-                    val preview = PreviewView(ctx).apply {
-                        scaleType = PreviewView.ScaleType.FILL_CENTER
-                        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                    }
-                    previewView = preview
-
-                    val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-                    cameraProviderFuture.addListener({
-                        try {
-                            val provider = cameraProviderFuture.get()
-                            cameraProvider = provider
-                            Log.d("CameraActivity", "카메라 프로바이더 가져오기 성공")
-
-                            // 기존 바인딩 해제
-                            provider.unbindAll()
-
-                            val previewBuilder = Preview.Builder()
-                                .build()
-                                .also {
-                                    it.setSurfaceProvider(preview.surfaceProvider)
-                                }
-
-                            val imageCaptureBuilder = ImageCapture.Builder()
-                                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                            imageCapture = imageCaptureBuilder.build()
-
-                            val analyzer = ImageAnalysis.Builder()
-                                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                                .build()
-
-                            // 카메라 선택 (후면 카메라 우선, 없으면 전면)
-                            val cameraSelector = if (isBackCamera && provider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)) {
-                                CameraSelector.DEFAULT_BACK_CAMERA
-                            } else {
-                                CameraSelector.DEFAULT_FRONT_CAMERA
-                            }
-
-                            // 카메라 바인딩 (analyzer 없이 안정성 향상)
-                            val camera = provider.bindToLifecycle(
-                                lifecycleOwner,
-                                cameraSelector,
-                                previewBuilder,
-                                imageCapture
-                            )
-
-                            cameraInitialized = true
-                            Log.d("CameraActivity", "카메라 초기화 완료")
-
-                        } catch (e: Exception) {
-                            Log.e("CameraActivity", "카메라 초기화 실패", e)
-                            e.printStackTrace()
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("약물 촬영") },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
                         }
-                    }, ContextCompat.getMainExecutor(ctx))
-
-                    preview
-                },
-                update = { previewView ->
-                    Log.d("CameraActivity", "PreviewView 업데이트")
-                }
-            )
-
-            // 원형 안내선 표시 - 조건부 렌더링 개선
-            if (showGuideLines && cameraInitialized) {
-                CircularCameraGuide(
-                    modifier = Modifier.fillMaxSize()
+                    },
+                    actions = {
+                        IconButton(onClick = { showGuideLines = !showGuideLines }) {
+                            Icon(
+                                if (showGuideLines) Icons.Default.GridOff else Icons.Default.GridOn,
+                                contentDescription = "가이드라인 토글"
+                            )
+                        }
+                        IconButton(onClick = { isBackCamera = !isBackCamera }) {
+                            Icon(Icons.Default.Flip, contentDescription = "카메라 전환")
+                        }
+                    }
                 )
             }
+        ) { paddingValues ->
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { ctx ->
+                        val preview = PreviewView(ctx).apply {
+                            scaleType = PreviewView.ScaleType.FILL_CENTER
+                            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                        }
 
-            // 촬영 후 정지된 이미지 표시 (오버레이)
-            if (capturedImageUri != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.6f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // 이미지 표시
-                    androidx.compose.foundation.Image(
-                        painter = rememberAsyncImagePainter(model = capturedImageUri),
-                        contentDescription = "촬영된 이미지",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
+                        val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+                        cameraProviderFuture.addListener({
+                            try {
+                                val provider = cameraProviderFuture.get()
+                                cameraProvider = provider
+
+                                provider.unbindAll()
+
+                                val previewBuilder = Preview.Builder()
+                                    .build()
+                                    .also {
+                                        it.setSurfaceProvider(preview.surfaceProvider)
+                                    }
+
+                                val imageCaptureBuilder = ImageCapture.Builder()
+                                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                                imageCapture = imageCaptureBuilder.build()
+
+                                val analyzer = ImageAnalysis.Builder()
+                                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                                    .build()
+                                    .also {
+                                        it.setAnalyzer(cameraExecutor, CameraAnalyzer(ctx) { medicine, confidence ->
+                                            detectedMedicine = medicine
+                                            detectionConfidence = confidence
+                                        })
+                                    }
+
+                                val cameraSelector = if (isBackCamera) {
+                                    CameraSelector.DEFAULT_BACK_CAMERA
+                                } else {
+                                    CameraSelector.DEFAULT_FRONT_CAMERA
+                                }
+
+                                val camera = provider.bindToLifecycle(
+                                    lifecycleOwner,
+                                    cameraSelector,
+                                    previewBuilder,
+                                    imageCapture,
+                                    analyzer
+                                )
+
+                                cameraInitialized = true
+
+                            } catch (e: Exception) {
+                                Log.e("CameraActivity", "카메라 초기화 실패", e)
+                            }
+                        }, ContextCompat.getMainExecutor(ctx))
+
+                        preview
+                    }
+                )
+
+                // 가이드라인 표시
+                if (showGuideLines && cameraInitialized) {
+                    CircularCameraGuide(
+                        modifier = Modifier.fillMaxSize()
                     )
+                }
 
-                    // 텍스트 오버레이
-                    Box(
+                // 인식 결과 표시
+                detectedMedicine?.let { medicine ->
+                    Card(
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(24.dp)
-                            .background(Color.Black.copy(alpha = 0.5f))
-                    ) {
-                        Text(
-                            text = "사진이 촬영되었습니다.\n갤러리에 저장하려면 체크 버튼을 누르세요.",
-                            color = Color.White,
-                            modifier = Modifier.padding(16.dp)
+                            .align(Alignment.TopCenter)
+                            .padding(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.Black.copy(alpha = 0.7f)
                         )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                "약물 인식됨",
+                                color = Color.White,
+                                fontSize = 12.sp
+                            )
+                            Text(
+                                medicine,
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "신뢰도: ${(detectionConfidence * 100).toInt()}%",
+                                color = Color.White,
+                                fontSize = 10.sp
+                            )
+                        }
                     }
                 }
-            }
 
-
-            // 하단 컨트롤 - 촬영 완료 상태
-            if (capturedImageUri != null) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(24.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // 다시 촬영 버튼
-                    IconButton(
-                        onClick = { resetCapture() },
-                        modifier = Modifier
-                            .size(50.dp)
-                            .background(
-                                color = Color.Red.copy(alpha = 0.8f),
-                                shape = CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "다시 촬영",
-                            tint = Color.White,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    // 갤러리 저장 완료 버튼
-                    IconButton(
-                        onClick = {
-                            Log.d("CameraActivity", "갤러리 저장 완료")
-                            // 이미 갤러리에 저장되어 있으므로 상태만 초기화
-                            resetCapture()
-                        },
-                        modifier = Modifier
-                            .size(50.dp)
-                            .background(
-                                color = Color.Green.copy(alpha = 0.8f),
-                                shape = CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "갤러리 저장 완료",
-                            tint = Color.White,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
-            } else {
-                // 기본 카메라 컨트롤
+                // 촬영 버튼
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(16.dp),
+                        .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 촬영 버튼만 중앙에 배치
                     IconButton(
-                        onClick = {
-                            Log.d("CameraActivity", "촬영 버튼 클릭")
-                            takePhoto()
-                        },
+                        onClick = { takePhoto() },
                         enabled = !isCapturing,
                         modifier = Modifier
-                            .size(70.dp)
+                            .size(80.dp)
                             .background(
                                 color = if (isCapturing) Color.Gray else Color.White,
                                 shape = CircleShape
@@ -378,28 +316,52 @@ fun CameraScreen() {
                             imageVector = Icons.Default.CameraAlt,
                             contentDescription = "사진 촬영",
                             tint = Color.Black,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (isCapturing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            "약물을 원 안에 맞춰 촬영하세요",
+                            color = Color.White,
+                            fontSize = 12.sp
                         )
                     }
                 }
             }
         }
     } else {
-        // 권한이 없는 경우
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Button(
-                onClick = { launcher.launch(Manifest.permission.CAMERA) },
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text("카메라 권한 허용")
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    Icons.Default.Camera,
+                    contentDescription = "카메라",
+                    modifier = Modifier.size(64.dp),
+                    tint = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("카메라 권한이 필요합니다")
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { launcher.launch(Manifest.permission.CAMERA) }
+                ) {
+                    Text("권한 허용")
+                }
             }
         }
     }
 
-    // 메모리 정리
     DisposableEffect(Unit) {
         onDispose {
             cameraExecutor.shutdown()
@@ -407,14 +369,12 @@ fun CameraScreen() {
     }
 }
 
-// 원형 가이드라인 Composable - 함수명 변경으로 충돌 방지
 @Composable
 fun CircularCameraGuide(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        // 원형 가이드라인
         Box(
             modifier = Modifier
                 .size(250.dp)
@@ -425,7 +385,6 @@ fun CircularCameraGuide(modifier: Modifier = Modifier) {
                 )
         )
 
-        // 중앙 십자선 (선택사항)
         Box(
             modifier = Modifier
                 .size(20.dp, 2.dp)

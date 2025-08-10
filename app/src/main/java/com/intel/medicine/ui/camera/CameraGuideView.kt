@@ -12,13 +12,9 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,7 +27,6 @@ fun CameraGuideView(
     val density = LocalDensity.current
     var animationProgress by remember { mutableStateOf(0f) }
 
-    // 애니메이션 효과
     LaunchedEffect(Unit) {
         while (true) {
             for (i in 0..100) {
@@ -57,7 +52,6 @@ fun CameraGuideView(
             val center = size.center
             val radius = minOf(size.width, size.height) / 2 * 0.8f
 
-            // 점선 원 가이드
             val pathEffect = PathEffect.dashPathEffect(
                 floatArrayOf(20f, 10f),
                 0f
@@ -73,11 +67,9 @@ fun CameraGuideView(
                 )
             )
 
-            // 내부 보조 가이드 라인들
             drawGuideLines(center, radius * 0.7f)
         }
 
-        // 중앙 포커스 포인트
         Surface(
             modifier = Modifier.size(8.dp),
             shape = CircleShape,
@@ -90,7 +82,6 @@ private fun DrawScope.drawGuideLines(center: Offset, radius: Float) {
     val lineColor = Color.White.copy(alpha = 0.3f)
     val strokeWidth = 1.dp.toPx()
 
-    // 십자 가이드라인
     drawLine(
         color = lineColor,
         start = Offset(center.x - radius * 0.3f, center.y),
