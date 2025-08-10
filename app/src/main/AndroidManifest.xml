@@ -52,9 +52,9 @@
         android:largeHeap="true"
         tools:targetApi="33">
 
-        <!-- 앱 시작 액티비티 -->
+        <!-- 스플래쉬 화면 -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.splash.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.Medicine"
             android:launchMode="singleTop"
