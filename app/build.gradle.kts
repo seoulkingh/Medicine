@@ -75,6 +75,11 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
 
+    // Material3 (테마용)
+    implementation("androidx.compose.material3:material3")
+
+    implementation("androidx.compose.material:material-icons-extended")
+
     // Camera
     implementation("androidx.camera:camera-core:1.3.1")
     implementation("androidx.camera:camera-camera2:1.3.1")
@@ -94,6 +99,9 @@ dependencies {
     // Permissions
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
+    // SplashScreen API (꼭 추가)
+    implementation("androidx.core:core-splashscreen:1.0.0")
+
     // Debug tools
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
@@ -104,4 +112,5 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.10.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    implementation("androidx.core:core-splashscreen:1.0.0")
 }

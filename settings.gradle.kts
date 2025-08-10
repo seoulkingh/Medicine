@@ -1,3 +1,5 @@
+// settings.gradle.kts
+
 pluginManagement {
     repositories {
         google {
@@ -11,8 +13,11 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
+    // 프로젝트 내 개별 모듈에서 repositories 사용 시 빌드 실패 처리
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
     repositories {
         google()
         mavenCentral()

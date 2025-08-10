@@ -97,7 +97,7 @@ fun DetailScreen(
                         Icon(
                             Icons.Default.Delete,
                             contentDescription = "삭제",
-                            tint = Color(0xFFF44336)
+                            tint = Color(0xFFE53E3E)
                         )
                     }
                 }
@@ -113,11 +113,9 @@ fun DetailScreen(
             // 약물 이미지 카드
             Card(
                 modifier = Modifier
-                    .size(160.dp)
+                    .size(140.dp)
                     .align(Alignment.CenterHorizontally),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFF8F9FA)
-                ),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 shape = RoundedCornerShape(20.dp)
             ) {
@@ -125,26 +123,16 @@ fun DetailScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            if (medicine.category == "약") "💊" else "🍃",
-                            fontSize = 64.sp
-                        )
-                        Text(
-                            medicine.category,
-                            fontSize = 12.sp,
-                            color = Color.Gray,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
+                    Text(
+                        if (medicine.category == "약") "💊" else "🍃",
+                        fontSize = 60.sp
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // 약물 기본 정보 카드
+            // 약물 기본 정보
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -156,7 +144,7 @@ fun DetailScreen(
                 ) {
                     Text(
                         medicine.name,
-                        fontSize = 24.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF333333)
                     )
@@ -169,7 +157,7 @@ fun DetailScreen(
                         color = Color(0xFF666666)
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
                     MedicineInfoRow(
                         label = "제조사",
@@ -178,8 +166,6 @@ fun DetailScreen(
                         iconColor = Color(0xFF4CAF50)
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     MedicineInfoRow(
                         label = "주요성분",
                         value = medicine.mainIngredient,
@@ -187,16 +173,12 @@ fun DetailScreen(
                         iconColor = Color(0xFF2196F3)
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     MedicineInfoRow(
                         label = "분류",
                         value = medicine.category,
                         icon = Icons.Default.Category,
                         iconColor = Color(0xFFFF9800)
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
 
                     MedicineInfoRow(
                         label = "등록일",
@@ -247,18 +229,18 @@ fun DetailScreen(
                         .fillMaxWidth()
                         .height(56.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color(0xFFF44336)
+                        contentColor = Color(0xFFE53E3E)
                     ),
                     border = androidx.compose.foundation.BorderStroke(
                         1.dp,
-                        Color(0xFFF44336)
+                        Color(0xFFE53E3E)
                     ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = "삭제",
-                        tint = Color(0xFFF44336)
+                        tint = Color(0xFFE53E3E)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -268,8 +250,6 @@ fun DetailScreen(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 
@@ -290,16 +270,19 @@ fun DetailScreen(
                 )
             },
             confirmButton = {
-                Button(
+                TextButton(
                     onClick = {
                         showDeleteDialog = false
                         onDeleteClick()
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF44336)
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = Color(0xFFE53E3E)
                     )
                 ) {
-                    Text("삭제", color = Color.White)
+                    Text(
+                        "삭제",
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             },
             dismissButton = {

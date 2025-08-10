@@ -39,12 +39,14 @@ class AlarmSettingActivity : ComponentActivity() {
         val selectedMedicine = intent.getParcelableExtra<Medicine>("medicine")
 
         setContent {
-            AlarmSettingScreen(
-                selectedMedicine = selectedMedicine,
-                onBackClick = { finish() },
-                onSaveAlarm = { alarm -> saveAlarm(alarm) },
-                repository = repository
-            )
+            MaterialTheme {
+                AlarmSettingScreen(
+                    selectedMedicine = selectedMedicine,
+                    onBackClick = { finish() },
+                    onSaveAlarm = { alarm -> saveAlarm(alarm) },
+                    repository = repository
+                )
+            }
         }
     }
 
@@ -75,10 +77,18 @@ fun AlarmSettingScreen(
     val medicines by remember { mutableStateOf(repository.getAllMedicines()) }
     val daysList = AlarmDay.values().toList()
 
+    val canSave = selectedMedicineState != null && selectedDays.isNotEmpty()
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("알람 설정") },
+                title = {
+                    Text(
+                        "알람 설정",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
@@ -99,12 +109,13 @@ fun AlarmSettingScreen(
                                 onSaveAlarm(alarm)
                             }
                         },
-                        enabled = selectedMedicineState != null && selectedDays.isNotEmpty()
+                        enabled = canSave
                     ) {
                         Text(
                             "저장",
-                            color = if (selectedMedicineState != null && selectedDays.isNotEmpty())
-                                Color(0xFF4CAF50) else Color.Gray
+                            color = if (canSave) Color(0xFF4CAF50) else Color.Gray,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -117,12 +128,12 @@ fun AlarmSettingScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            // 시간 설정
+            // 시간 설정 카드
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 onClick = {
                     val timeParts = selectedTime.split(":")
                     val hour = timeParts[0].toInt()
@@ -142,44 +153,61 @@ fun AlarmSettingScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(20.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        Icons.Default.Schedule,
-                        contentDescription = "시간",
-                        tint = Color(0xFF4CAF50)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Surface(
+                        modifier = Modifier.size(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF4CAF50)
+                    ) {
+                        Icon(
+                            Icons.Default.Schedule,
+                            contentDescription = "시간",
+                            tint = Color.White,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             "복용 시간",
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF666666)
                         )
                         Text(
                             selectedTime,
-                            fontSize = 24.sp,
+                            fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF4CAF50)
                         )
                     }
+
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        contentDescription = "시간 변경",
+                        tint = Color(0xFFBBBBBB)
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // 약물 선택
+            // 약물 선택 섹션
             Text(
                 "약물 선택",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(vertical = 8.dp)
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF333333),
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
             if (medicines.isNotEmpty()) {
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(medicines) { medicine ->
                         MedicineSelectionChip(
@@ -190,21 +218,29 @@ fun AlarmSettingScreen(
                     }
                 }
             } else {
-                Text(
-                    "등록된 약물이 없습니다. 먼저 약물을 등록해주세요.",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        "등록된 약물이 없습니다.\n먼저 약물을 등록해주세요.",
+                        fontSize = 14.sp,
+                        color = Color(0xFFFF9800),
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 요일 선택
+            // 요일 선택 섹션
             Text(
                 "반복 요일",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(vertical = 8.dp)
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF333333),
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
             LazyRow(
@@ -221,39 +257,51 @@ fun AlarmSettingScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 알람 옵션
+            // 알람 옵션 섹션
             Text(
                 "알람 옵션",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(vertical = 8.dp)
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF333333),
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(20.dp)
                 ) {
                     // 소리 설정
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            Icons.Default.VolumeUp,
-                            contentDescription = "소리",
-                            tint = Color(0xFF4CAF50)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Surface(
+                            modifier = Modifier.size(32.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF2196F3)
+                        ) {
+                            Icon(
+                                Icons.Default.VolumeUp,
+                                contentDescription = "소리",
+                                tint = Color.White,
+                                modifier = Modifier.padding(6.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
                         Text(
                             "알람 소리",
                             fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
                             modifier = Modifier.weight(1f)
                         )
+
                         Switch(
                             checked = soundEnabled,
                             onCheckedChange = { soundEnabled = it },
@@ -264,24 +312,35 @@ fun AlarmSettingScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
                     // 진동 설정
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            Icons.Default.Vibration,
-                            contentDescription = "진동",
-                            tint = Color(0xFF4CAF50)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Surface(
+                            modifier = Modifier.size(32.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFFFF9800)
+                        ) {
+                            Icon(
+                                Icons.Default.Vibration,
+                                contentDescription = "진동",
+                                tint = Color.White,
+                                modifier = Modifier.padding(6.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
                         Text(
                             "진동",
                             fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
                             modifier = Modifier.weight(1f)
                         )
+
                         Switch(
                             checked = vibrationEnabled,
                             onCheckedChange = { vibrationEnabled = it },
@@ -292,6 +351,47 @@ fun AlarmSettingScreen(
                         )
                     }
                 }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 저장 버튼
+            Button(
+                onClick = {
+                    selectedMedicineState?.let { medicine ->
+                        val alarm = Alarm(
+                            medicineId = medicine.id,
+                            medicineName = medicine.name,
+                            time = selectedTime,
+                            days = selectedDays,
+                            soundEnabled = soundEnabled,
+                            vibrationEnabled = vibrationEnabled
+                        )
+                        onSaveAlarm(alarm)
+                    }
+                },
+                enabled = canSave,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (canSave) Color(0xFF4CAF50) else Color.Gray,
+                    disabledContainerColor = Color.Gray
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = "저장",
+                    tint = Color.White
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "알람 저장",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }
@@ -306,12 +406,31 @@ fun MedicineSelectionChip(
 ) {
     FilterChip(
         onClick = onClick,
-        label = { Text(medicine.name) },
+        label = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    if (medicine.category == "약") "💊" else "🍃",
+                    fontSize = 20.sp
+                )
+                Text(
+                    medicine.name,
+                    fontSize = 12.sp,
+                    maxLines = 2
+                )
+            }
+        },
         selected = isSelected,
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = Color(0xFF4CAF50),
-            selectedLabelColor = Color.White
-        )
+            selectedLabelColor = Color.White,
+            containerColor = Color(0xFFF0F0F0),
+            labelColor = Color(0xFF666666)
+        ),
+        modifier = Modifier
+            .width(120.dp)
+            .height(80.dp)
     )
 }
 
@@ -324,17 +443,28 @@ fun DaySelectionChip(
 ) {
     FilterChip(
         onClick = onClick,
-        label = { Text(day.displayName) },
+        label = {
+            Text(
+                day.displayName,
+                fontSize = 14.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            )
+        },
         selected = isSelected,
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = Color(0xFF4CAF50),
-            selectedLabelColor = Color.White
-        )
+            selectedLabelColor = Color.White,
+            containerColor = Color(0xFFF0F0F0),
+            labelColor = Color(0xFF666666)
+        ),
+        modifier = Modifier.width(48.dp)
     )
 }
 
 @Preview(showBackground = true)
 @Composable
 fun AlarmSettingScreenPreview() {
-    AlarmSettingScreen()
+    MaterialTheme {
+        AlarmSettingScreen()
+    }
 }
